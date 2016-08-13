@@ -3,9 +3,25 @@
 if(!class_exists('BannersManage')) {
   	class BannersManage
   	{
+
+        private function fn_delete_banner($wpdb, $banner_id)
+  		{
+  			$b_table = "dp24_banners";
+  			return true;
+  		}
+
 		public function page() {
-  			global $wpdb; 
-  			$b_table = "dp24_banners"; ?>
+  			global $wpdb;
+
+  			if (!empty($_GET['mode']) && $_GET['mode'] == 'delete') {
+  				self::fn_delete_banner($wpdb, $_GET['item']);
+  			}
+
+      		$b_table = "dp24_banners";
+      		if(isset($_POST['update_banner'])) {
+				$is_update = (!empty($_POST['banner_data']['id'])) ? true : false;
+				self::fn_update_banner_date($wpdb, $_POST['banner_data'], $_POST['banner_data']['id'], $_POST['link_data'], $is_update);
+	        } ?>
       		<div class='wrap'>
       			<h2><?php _e('Managing Banners', BANNER_DOMAIN); ?></h2>
       		</div>
@@ -21,12 +37,12 @@ if(!class_exists('BannersManage')) {
 			    <body>
 			    	<?php 
 			    		$bSql = "SELECT id, name FROM {$b_table}";
-			    		$banners = $wpdb->get_results($bSql, ARRAY_A);
-
+			    		$banners = $wpdb->get_results($bSql, ARRAY_A);			    		
 			    		foreach ($banners as $i => $banner) { ?>
 					    	<tr class="<?php echo (($i & 1) ? 'alternate' : ''); ?>">
 								<td class="post-title column-title"><?php echo $banner['id']; ?></td>
 								<td class="post-title column-title"><strong><a href="<?php echo admin_url('admin.php'); ?>?page=banner-edit&mode=edit&item=<?php echo $banner['id']; ?>"><?php echo $banner['name'];?></a></strong>
+								<span class="delete"><a href="<?php echo admin_url('admin.php'); ?>?page=banners-list&mode=delete&item=<?php echo $banner['id']; ?>"><?php _e('Remove', BANNER_DOMAIN);?></a></span>
 								</td>
 							</tr>
                         <?php } ?>
