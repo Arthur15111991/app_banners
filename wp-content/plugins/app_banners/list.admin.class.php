@@ -7,7 +7,9 @@ if(!class_exists('BannersManage')) {
         private function fn_delete_banner($wpdb, $banner_id)
   		{
   			$b_table = "dp24_banners";
-  			return true;
+  			$ab_table = "dp24_apps_banners";
+  			$wpdb->delete($b_table, array('id' => $banner_id));
+  			return $wpdb->delete($ab_table, array('bannerId' => $banner_id));
   		}
 
 		public function page() {

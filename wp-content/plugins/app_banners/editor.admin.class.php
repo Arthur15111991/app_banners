@@ -3,6 +3,47 @@
 if(!class_exists('BannersEdit')) {
   	class BannersEdit 
   	{
+  		private function fn_update_banner_date($wpdb, $banner_data, $banner_id = 0, $app_banner_data = array(), $is_update = false)
+  		{
+  			$b_table = "dp24_banners";
+      		$ab_table = "dp24_apps_banners";
+
+  			$post_data = array(
+  				'name' => stripslashes($banner_data['name']),
+				'imageName' => stripslashes($banner_data['image_name']),
+				'link' => stripslashes($banner_data['link']),
+				'comment' => stripslashes($banner_data['comments'])
+  			);
+  			$formatRow = array( '%s', '%s', '%s', '%s');
+  			if ($is_update) {
+  				$wpdb->update($b_table, $post_data, array('id' => $banner_id), $formatRow);	
+  			} else {
+  				$wpdb->insert($b_table, $post_data, $formatRow);
+  				$banner_id = $wpdb->insert_id;
+  			}
+  			
+        	for ($i = 0; $i < count($app_banner_data['platform']); $i++) {
+        		if (empty($app_banner_data['link'][$i]) || empty($app_banner_data['order_by'][$i])) {
+        			continue;
+        		}
+				$insertRows = array (
+					'bannerId' => $banner_id,
+					'app' => $app_banner_data['app'][$i],
+					'platform' => $app_banner_data['platform'][$i],
+					'link' => $app_banner_data['link'][$i],
+					'orderBy' => $app_banner_data['order_by'][$i],
+					'isActive' => (empty($app_banner_data['is_active'][$i])) ? false : true,
+				);
+				$formatRow = array( '%d', '%s', '%s', '%s', '%d', '%d');
+				if (!empty($app_banner_data['link_id'][$i])) {
+					$wpdb->update($ab_table, $insertRows, array('id' => $app_banner_data['link_id'][$i] ), $formatRow);
+				} else {
+					$wpdb->insert($ab_table, $insertRows, $formatRow);	
+				}				
+			}
+  			return $banner_id;
+  		}
+
   		private function fn_get_banner_data($wpdb, $banner_id)
   		{
   			$b_table = "dp24_banners";
@@ -85,7 +126,64 @@ if(!class_exists('BannersEdit')) {
 				        <button id="submit_button" class="color-btn color-btn-left" name="update_banner" type="submit">
 			          		<?php _e('Save', BANNER_DOMAIN) ?>
 			        	</button>
-			  		</div>	  		
+			  		</div>
+
+			  		<div id="app_links" style="float:right; max-width:390px">
+			  			<div class="container">
+
+			  				<?php if ($mode == 'edit') foreach ($app_banner_data as $key => $value) { ?>
+				  			<div id="link_data" style="border: 1px solid green; margin:5px; padding: 10px; text-align: center;">
+				  				<input type="hidden" name="link_data[link_id][]" value="<?php echo $value['id']?>">
+				  				<select id="platform[]" name="link_data[platform][]">
+						        	<option <?php if ($value['platform'] == 'android') {?> selected <?php } ?> value="android">android</option>
+						        	<option <?php if ($value['platform'] == 'ios') { ?> selected <?php } ?> value="ios">ios</option>
+						        	<option <?php if ($value['platform'] == 'windowsphone') { ?> selected <?php } ?>  value="windowsphone">windowsphone</option>
+						        	<option <?php if ($value['platform'] == 'amazon') { ?> selected <?php } ?> value="amazon">amazon</option>
+						        </select>
+						        <select id="app[]" name="link_data[app][]">
+						        	<option <?php if ($value['app'] == 'drumpads24') {?> selected <?php } ?> value="drumpads24">drumpads24</option>
+						        	<option <?php if ($value['app'] == 'dubstepdrumpads24') {?> selected <?php } ?> value="dubstepdrumpads24">dubstepdrumpads24</option>
+						        	<option <?php if ($value['app'] == 'electrodrumpads24') {?> selected <?php } ?> value="electrodrumpads24">electrodrumpads24</option>
+						        	<option <?php if ($value['app'] == 'hiphopdrumpads24') {?> selected <?php } ?> value="hiphopdrumpads24">hiphopdrumpads24</option>
+						        	<option <?php if ($value['app'] == 'trapdrumpads24') {?> selected <?php } ?> value="trapdrumpads24">trapdrumpads24</option>
+						        </select>
+				  				<input type="text" id="link[]" name="link_data[link][]" placeholder="link" value=<?php echo $value['link'] ?>>
+				  				<input type="text" id="order_by[]" name="link_data[order_by][]" placeholder="order by" value=<?php echo $value['orderBy'] ?>>
+
+				  				<input type="checkbox" name="link_data[is_active][]" id="is_active" value="1" <?php checked(1, $value['isActive']); ?> >
+                        		<label for="is_active"><?php _e('status', SAM_DOMAIN); ?></label>
+				  			</div>
+			  			
+			  			    <?php } ?>
+			  				<div id="link_data" style="border: 1px solid green; margin:5px; padding: 10px; text-align: center;">
+				  				<input type="hidden" value="" name="link_data[link_id][]" value="">
+				  				<select id="platform[]" name="link_data[platform][]">
+						        	<option value="android">android</option>
+						        	<option value="ios">ios</option>
+						        	<option value="windowsphone">windowsphone</option>
+						        	<option value="amazon">amazon</option>
+						        </select>
+						        <select id="app[]" name="link_data[app][]">
+						        	<option value="drumpads24">drumpads24</option>
+						        	<option value="dubstepdrumpads24">dubstepdrumpads24</option>
+						        	<option value="electrodrumpads24">electrodrumpads24</option>
+						        	<option value="hiphopdrumpads24">hiphopdrumpads24</option>
+						        	<option value="trapdrumpads24">trapdrumpads24</option>
+						        </select>
+				  				<input type="text" id="link[]" name="link_data[link][]" value="" placeholder="link">
+				  				<input type="text" id="order_by[]" name="link_data[order_by][]" value="" placeholder="order by">
+				  				<input type="checkbox" name="link_data[is_active][]" id="is_active[]">
+                        		<label for="is_active[]"><?php _e('status', SAM_DOMAIN); ?></label>
+				  			</div>
+				  		</div>
+			  			<button type="button" id="clone_button">
+			          		<?php _e('Add_link', BANNER_DOMAIN) ?>
+			        	</button>
+
+			        	<button id="create_config_button" class="color-btn color-btn-left" name="create_config" type="submit">
+			          		<?php _e('Create config', BANNER_DOMAIN) ?>
+			        	</button>
+			  		</div>
 
 
 			  		<script type="text/javascript">

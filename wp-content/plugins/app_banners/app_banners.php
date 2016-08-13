@@ -26,14 +26,21 @@ if (!class_exists('AppBanners' && class_exists('AppBanners'))) {
 	  		$menu_page = add_menu_page(__('App Banners', BANNER_DOMAIN), __('App Banners', BANNER_DOMAIN), BANNER_ACCESS, 'app-banners', array(&$this, 'fn_manage_banners'));
 			
 			add_submenu_page('app-banners', __('Manage banners', BANNER_DOMAIN), __('Manage banners', BANNER_DOMAIN), BANNER_ACCESS, 'app-banners', array(&$this, 'fn_manage_banners'));
+			add_submenu_page('app-banners', __('Banners editor', BANNER_DOMAIN), __('Banners editor', BANNER_DOMAIN), BANNER_ACCESS, 'banner-edit', array(&$this, 'fn_add_new_banner'));
 		}
-
 
 		public function fn_manage_banners() 
 		{
             include_once('list.admin.class.php');
             $list = new BannersManage();
             $list->page();
+		}
+
+		public function fn_add_new_banner()
+		{
+			include_once('editor.admin.class.php');
+	        $list = new BannersEdit();
+	        $list->page();
 		}
 	}
 }
