@@ -29,13 +29,30 @@ if(!class_exists('AppConfigManage')) {
   					$text = json_encode($platform);
   					$file_path = get_home_path() . 'wp-content/plugins/user_banners/config_files/';
 	  				$file_name = $_key . '.' . $key . '.php';
-
 					$fp = fopen($file_path . $file_name, "w");
 					fwrite($fp, $text);
 					fclose($fp);
   				}
   			}
   			return true;
+  		}
+
+  		private function fn_transfer_config_file($file_path, $file_name)
+  		{
+  			$file_name_local = $file_path . $file_name;
+			$ftp_server	= 'sandbox.ecom-labs.com';
+			$ftp_port	= 21;
+			$ftp_file	= $file_name;
+			$ftp_user_name	= 'test';
+			$ftp_user_pass	= 'test';
+
+			$ftp = ftp_connect($ftp_server, $ftp_port, 20);
+			$login_result = ftp_login($ftp, $ftp_user_name, $ftp_user_pass);
+			ftp_pasv($ftp, true);
+			if(!ftp_put($ftp, $ftp_file, $file_name_local, FTP_BINARY)) {
+			   die('ERROR FTP');
+			}
+			ftp_close($ftp);
   		}
 
 		public function page() 
@@ -68,6 +85,9 @@ if(!class_exists('AppConfigManage')) {
 							<?php } ?>
 					    </body>
 		  			</table>
+		  			<button id="submit_button" class="color-btn color-btn-left" name="create_config" type="submit">
+		          		<?php _e('create_config', BANNER_DOMAIN) ?>
+		        	</button>
 	        	</form>
         	</div>
 
